@@ -125,7 +125,7 @@
     <select id="odShift" onchange="renderOnDuty()">
       <option value="">Semua shift</option>
       <option value="P">Pagi</option><option value="Mid">Middle</option>
-      <option value="S">Siang</option><option value="M">Malam</option><option value="Off">Off Day</option>
+      <option value="S">Siang</option><option value="Sore">Sore</option><option value="M">Malam</option><option value="Off">Off Day</option>
     </select>
   </div>
   <div id="onduty"></div>
@@ -167,7 +167,7 @@ function setupRoles(){ var s=document.getElementById('rsel'); var hh='';
   s.innerHTML=hh;
   roleFilters=roleFilters.filter(function(r){return DATA.people.some(function(p){return p.role===r;});});
 }
-function drawLegend(){ var keys=["P","Mid","S","M","Off"],h="";
+function drawLegend(){ var keys=["P","Mid","S","Sore","M","Off"],h="";
   keys.forEach(function(k){ var ii=info(k); h+='<span class="lg"><span class="sw" style="background:'+ii.color+'"></span>'+ii.label+' <span class="hint">'+ii.time+'</span></span>'; });
   document.getElementById('legend').innerHTML=h; }
 function periodText(){
@@ -216,8 +216,8 @@ function render(){
   else { document.getElementById('todayRow').innerHTML=box("Hari Pertama",1)+box("Hari Ke-2",2); document.getElementById('todayHint').textContent="Hari ini di luar periode jadwal terpilih."; }
   renderWeek(row, tIdx>0?tIdx:1);
   var cnt={}; for(var d=0;d<row.length;d++) cnt[row[d]]=(cnt[row[d]]||0)+1;
-  var keys=["P","Mid","S","M","Off"]; var sh="";
-  for(var s=0;s<keys.length;s++){ var kk=keys[s]; if(kk==="Mid"&&!cnt.Mid) continue; var ii=info(kk);
+  var keys=["P","Mid","S","Sore","M","Off"]; var sh="";
+  for(var s=0;s<keys.length;s++){ var kk=keys[s]; if((kk==="Mid"&&!cnt.Mid)||(kk==="Sore"&&!cnt.Sore)) continue; var ii=info(kk);
     sh+='<div class="stat" style="background:'+ii.color+'"><div class="n">'+(cnt[kk]||0)+'</div><div class="l">'+ii.label+'</div></div>'; }
   var hk=0; for(var dk=0;dk<row.length;dk++){ if(row[dk]!=="Off"&&row[dk]!=="Resign") hk++; }
   sh+='<div class="stat" style="background:#1A237E;border-color:#1A237E"><div class="n" style="color:#fff">'+hk+'</div><div class="l" style="color:#c5cae9">Total HK</div></div>';
@@ -265,14 +265,14 @@ function renderGrid(){
   h+="</tbody>";
   document.getElementById('gridTbl').innerHTML=h;
   // ---- Rekap MP Duty per hari (per role terfilter) ----
-  var keys=["P","Mid","S","M","Off"];
+  var keys=["P","Mid","S","Sore","M","Off"];
   var rh="<thead><tr><th class='nm'>Shift</th><th></th>";
   for(var d=1; d<=DATA.nDays; d++){ var we2=wd(d)>=5; rh+="<th class='"+(we2?"wknd":"")+"'>"+d+"<br>"+DAY_ID[wd(d)].slice(0,2)+"</th>"; }
   rh+="</tr></thead><tbody>";
   keys.forEach(function(k){
     var cnts=[], tot=0;
     for(var d=0; d<DATA.nDays; d++){ var c=0; ppl.forEach(function(x){ if(DATA.sched[x.i][d]===k) c++; }); cnts.push(c); tot+=c; }
-    if(k==="Mid" && tot===0) return;
+    if((k==="Mid"||k==="Sore") && tot===0) return;
     var ii=info(k);
     rh+="<tr><td class='nm' style='background:"+ii.color+";font-weight:700'>"+ii.label+"</td><td class='tier'></td>";
     for(var d=0; d<DATA.nDays; d++){ var tc=(tIdx===d+1)?" tcol":""; rh+="<td class='cellg"+tc+"'>"+cnts[d]+"</td>"; }
@@ -288,7 +288,7 @@ function renderOnDuty(){
   var sf=document.getElementById('odShift').value;
   document.getElementById('odRoleLbl').textContent=(roleFilters.length?("— "+roleLabels()):"(semua role)")+(sf?(" · "+info(sf).label):"");
   var roles=roleFilters.length?roleFilters:ROLES;
-  var shiftOrder=["P","Mid","S","M","Off"]; var html=""; var grand=0;
+  var shiftOrder=["P","Mid","S","Sore","M","Off"]; var html=""; var grand=0;
   for(var ri=0;ri<roles.length;ri++){ var role=roles[ri]; var grp={};
     for(var i=0;i<DATA.people.length;i++){ if(DATA.people[i].role!==role) continue; var k=DATA.sched[i][day-1]; if(!grp[k])grp[k]=[]; grp[k].push(i); }
     var rh="";
